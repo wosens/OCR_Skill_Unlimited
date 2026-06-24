@@ -77,3 +77,9 @@ python scripts/ocr.py --input doc.pdf --format md
 ## 许可证
 
 MIT（见 [LICENSE](LICENSE)）。本技能仅*调用* OCR 引擎；引擎本身（RapidOCR / Unlimited-OCR）由各用户从官方源自行安装，保留各自许可证。
+
+## 作者
+
+**wosens** — [https://github.com/wosens](https://github.com/wosens)
+
+欢迎在 [https://github.com/wosens/OCR_Skill_Unlimited/issues](https://github.com/wosens/OCR_Skill_Unlimited/issues) 提交 issue 或 pull request。

@@ -77,3 +77,9 @@ Each input produces one `.txt`/`.md`/`.json` file, and a JSON summary is printed
 ## License
 
 MIT (see [LICENSE](LICENSE)). This skill only *calls* the OCR engines; the engines themselves (RapidOCR / Unlimited-OCR) are installed by each user from their official sources and retain their own licenses.
+
+## Author
+
+**wosens** — [https://github.com/wosens](https://github.com/wosens)
+
+Issues and pull requests are welcome at [https://github.com/wosens/OCR_Skill_Unlimited/issues](https://github.com/wosens/OCR_Skill_Unlimited/issues).
