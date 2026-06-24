@@ -8,93 +8,71 @@ description: Extract/recognize text from images and PDFs via OCR. Use whenever t
 Recognize text from images and PDFs. Two engines:
 
 - **RapidOCR** (default): fast, lightweight, CPU-friendly, Chinese + English. Use for almost all OCR needs.
-- **Unlimited-OCR** (optional, NVIDIA GPU only): high-fidelity document parsing that produces layout-preserving Markdown. Use only when the user wants layout/table reconstruction from documents AND an NVIDIA GPU is present.
+- **Unlimited-OCR** (optional, NVIDIA GPU only): high-fidelity, layout-preserving document parsing → Markdown. Use only for layout/table reconstruction from documents, with an NVIDIA GPU present.
 
-## Python Environment
+## Requirements
 
-Python (3.10) is at: `D:/Program Files/Python/Python310/python.exe`
+- **Python 3.9–3.12** (3.13+ has no onnxruntime/paddle wheels). Any of 3.10/3.11/3.12 works.
+- The skill auto-detects the interpreter — no manual path config needed.
+- RapidOCR runs on **CPU** (no GPU required). Unlimited-OCR needs an **NVIDIA GPU**.
 
-Required packages: `rapidocr-onnxruntime`, `pymupdf` (onnxruntime / numpy / cv2 / PIL are already installed in this environment).
+## First-time setup (run once)
 
-**First use:** run `install.py` once (see Step 1) to install the OCR packages.
+Run from this skill's directory (where `SKILL.md` lives):
 
-## Engine Selection
-
-| Situation | Engine |
-|---|---|
-| Default OCR: screenshots, photos, scanned pages, general Chinese/English text | `rapidocr` |
-| Need layout-preserving Markdown / table reconstruction from documents, and an NVIDIA GPU exists | `unlimited` |
-
-## Step 1 — Check / Install Environment
-
-Check (read-only, prints JSON status + next step):
 ```bash
-"D:/Program Files/Python/Python310/python.exe" "C:/Users/Administrator/.claude/skills/ocr/scripts/check_env.py"
+# 1) Check environment — prints which Python it will use + what's missing
+python scripts/check_env.py
 ```
-
-Install default engine (RapidOCR + PyMuPDF):
+If `check_env.py` reports missing packages, install them:
 ```bash
-"D:/Program Files/Python/Python310/python.exe" "C:/Users/Administrator/.claude/skills/ocr/scripts/install.py"
+# 2) Install the default engine (RapidOCR + PyMuPDF)
+python scripts/install.py
 ```
+Notes:
+- If your default `python` is 3.13+, `check_env.py` still finds a 3.10–3.12 if one is installed and prints its path as `python_path` — use that path in place of `python` below.
+- `install.py` tries the default PyPI first, then falls back to a mirror automatically.
 
-Install optional Unlimited-OCR backend (adds transformers; also needs CUDA torch + model download):
-```bash
-"D:/Program Files/Python/Python310/python.exe" "C:/Users/Administrator/.claude/skills/ocr/scripts/install.py" --unlimited
-```
+## Run OCR
 
-## Step 2 — Run OCR
-
-Core script: `scripts/ocr.py`. It auto-detects the input type by extension/path (`.pdf` → PDF; image extension → single image; directory → batch).
+`scripts/ocr.py` auto-detects the input type by extension (`.pdf` → PDF; image extension → single image; directory → batch).
 
 **Single image:**
 ```bash
-"D:/Program Files/Python/Python310/python.exe" "C:/Users/Administrator/.claude/skills/ocr/scripts/ocr.py" --input "<image>" --format text
+python scripts/ocr.py --input "<image>" --format text
 ```
-
 **Batch a directory (recursive):**
 ```bash
-"D:/Program Files/Python/Python310/python.exe" "C:/Users/Administrator/.claude/skills/ocr/scripts/ocr.py" --input "<dir>" --recursive --format text
+python scripts/ocr.py --input "<dir>" --recursive --format text
 ```
-
 **PDF (each page → text):**
 ```bash
-"D:/Program Files/Python/Python310/python.exe" "C:/Users/Administrator/.claude/skills/ocr/scripts/ocr.py" --input "<file.pdf>" --format md
+python scripts/ocr.py --input "<file.pdf>" --format md
 ```
 
-**Options:**
-- `--input` file or directory (required)
-- `--output-dir` output folder (default: `ocr_output/` next to the input)
-- `--engine` `rapidocr` (default) | `unlimited`
-- `--format` `text` (default) | `md` | `json`
-- `--recursive` include subdirectories (directory input only)
-- `--lang` language hint (default `ch`; RapidOCR ships a Chinese+English model)
-- `--dpi` PDF render DPI (default 300)
+**Options:** `--input` (required) · `--output-dir` (default `ocr_output/` next to input) · `--engine rapidocr|unlimited` (default `rapidocr`) · `--format text|md|json` (default `text`) · `--recursive` · `--lang` (default `ch`) · `--dpi` (PDF, default 300).
 
-**Output:** one file per source (same base name, new extension) is written to `--output-dir`. A JSON summary is also printed to **stdout** — parse it to read results without re-opening the files.
+**Output:** one file per source (same base name, `.txt`/`.md`/`.json`) into `--output-dir`; a JSON summary is also printed to **stdout** for parsing.
 
-## Step 3 — Use Results
+## Engine selection
 
-Parse the stdout JSON summary:
-```json
-{"engine":"rapidocr","input":"...","output_dir":"...","format":"text",
- "results":[{"source":"...","output":"...","chars":123,"status":"ok","seconds":1.2}],
- "summary":{"total":1,"ok":1,"failed":0,"seconds":1.2}}
-```
-For full text, read the output files, or use `--format json` to get per-line boxes + confidence scores.
+| Situation | Engine |
+|---|---|
+| Default OCR: screenshots, photos, scans, general text | `rapidocr` |
+| Layout-preserving Markdown / table reconstruction + NVIDIA GPU | `unlimited` |
 
 ## Unlimited-OCR (optional, GPU)
 
-Only when an NVIDIA GPU is present and layout-preserving parsing is explicitly required:
+Only when an NVIDIA GPU is present and layout-preserving parsing is required:
 ```bash
-"D:/Program Files/Python/Python310/python.exe" "C:/Users/Administrator/.claude/skills/ocr/scripts/unlimited_ocr.py" --input "<doc>" --output-dir "uocr_out" --config gundam
+python scripts/unlimited_ocr.py --input "<doc>" --output-dir "uocr_out" --config gundam
 ```
-Notes:
-- First run downloads model `baidu/Unlimited-OCR` (several GB) and needs a CUDA-enabled torch.
-- On a 6 GB GPU it may OOM — prefer single-image `--config gundam`, and avoid large multi-page jobs.
+First run downloads model `baidu/Unlimited-OCR` (several GB) and needs a CUDA-enabled torch. On low-VRAM GPUs (≤6 GB) prefer `--config gundam`; large multi-page jobs may OOM.
 
-## Tips
+## Troubleshooting
 
-- RapidOCR runs on CPU; no GPU is needed for the default engine.
-- For low-quality scans, a higher PDF DPI (e.g. `--dpi 400`) improves accuracy.
-- If a package is missing, re-run `install.py`; `check_env.py` reports exactly what is missing.
-- Directory outputs are flattened: `sub/a.jpg` → `sub__a.txt` inside `--output-dir`.
+- **`No Python 3.9-3.12 found`**: install Python 3.10/3.11/3.12 from https://www.python.org/ , then re-run `check_env.py`.
+- **`ModuleNotFoundError: rapidocr_onnxruntime`**: run `python scripts/install.py`.
+- **pip install fails (SSL / network)**: `install.py` auto-falls back to a mirror; if it still fails, set one manually:
+  `pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --trusted-host pypi.tuna.tsinghua.edu.cn rapidocr-onnxruntime pymupdf`.
+- **Directory outputs are flattened**: `sub/a.jpg` → `sub__a.txt` in `--output-dir`.
