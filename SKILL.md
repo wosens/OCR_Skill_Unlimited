@@ -1,6 +1,6 @@
 ---
 name: ocr
-description: Extract/recognize text from images and PDFs via OCR. Use whenever the user wants to OCR, recognize text, or extract text from images (jpg/png/webp/bmp/tiff), screenshots, scanned documents, photos of text, or PDFs. Supports Chinese/English/multilingual, single image, batch directories, and multi-page PDF. Triggers on "OCR", "文字识别", "识别图片", "提取文字", "图片转文字", "图片识字", "扫描件转文本", "scan to text", "image to text".
+description: CROSS-PLATFORM OCR (Python + RapidOCR PP-OCRv4; runs on Windows / macOS / Linux). Use this when the user needs macOS/Linux support, is NOT on Windows x64, or explicitly wants the Python version — otherwise the DEFAULT on Windows is 'ocr-cpp' (native C++, faster, zero-dependency). Supports single image, batch directories, and multi-page PDF. Triggers on "OCR", "文字识别", "识别图片", "提取文字", "图片转文字", "图片识字", "扫描件转文本" + "跨平台", "macOS", "Linux", "Python".
 ---
 
 # OCR Skill
@@ -76,3 +76,23 @@ First run downloads model `baidu/Unlimited-OCR` (several GB) and needs a CUDA-en
 - **pip install fails (SSL / network)**: `install.py` auto-falls back to a mirror; if it still fails, set one manually:
   `pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --trusted-host pypi.tuna.tsinghua.edu.cn rapidocr-onnxruntime pymupdf`.
 - **Directory outputs are flattened**: `sub/a.jpg` → `sub__a.txt` in `--output-dir`.
+
+## Benchmark (reference, same Windows x64 machine, CPU)
+
+Test image `benchmark/sample.jpg` — **564×533, 93 KB, 12 lines of Chinese + English**:
+
+![benchmark sample — 12 lines of Chinese + English](benchmark/sample.jpg)
+
+| Metric | This skill (ocr, PP-OCRv4) |
+|---|---|
+| End-to-end wall time | 6.3 s |
+| Inference (engine-reported) | 5.48 s |
+| Characters recognized | 471 |
+
+Recognized text (excerpt — note English word spacing is dropped, a known RapidOCR behavior):
+```
+人生活的真实写照：善有善报，恶有善报
+everyman'slife:goodbegetsgood,andevilleadstoevil.
+We Chinese have a saying:If a man plants melons,he will reap
+```
+On the same image the native `ocr-cpp` skill takes **3.6 s** end-to-end (~45% faster) and preserves English spacing better. Use this Python `ocr` skill when you need **cross-platform (macOS/Linux)** or **PDF** support.
