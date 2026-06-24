@@ -1,5 +1,7 @@
 # OCR Skill for Claude Code
 
+[English](README.md) | [中文](README_zh.md)
+
 A [Claude Code](https://docs.claude.com/en/docs/claude-code) skill that recognizes/extracts text from **images and PDFs** via OCR. Supports single image, batch directories, and multi-page PDF; Chinese + English + multilingual.
 
 Two engines:
